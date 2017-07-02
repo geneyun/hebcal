@@ -1,4 +1,100 @@
-import math
+import math as _math
+
+
+class TimeDelta:
+    def __init__(self, weeks=0, days=0, hours=0, minutes=0):
+        if minutes > 60:
+            self.minutes = minutes % 60
+            hours += minutes // 60
+        else:
+            self.minutes = minutes
+        if hours > 24:
+            self.hours = hours % 24
+            days += hours // 24
+        else:
+            self.hours = hours
+        if days > 7:
+            self.days = days % 7
+            weeks = days // 7
+        else:
+            self.days = days
+        self.weeks = weeks
+
+    def __str__(self):
+        return 'TimeDelta<{}-{}  {}:{}>'.format(self.weeks,self.days,self.hours,self.minutes)
+
+    def __neg__(self):
+        # for CPython compatibility, we cannot use
+        # our __class__ here, but need a real timedelta
+        return TimeDelta(weeks= -self.weeks,
+                         days= -self.days,
+                         hours= -self.hours,
+                         minutes= -self.minutes)
+
+    def __add__(self, other):
+        if isinstance(other, TimeDelta):
+            return TimeDelta(weeks=self.weeks + other.weeks,
+                             days=self.days + other.days,
+                             hours=self.hours + other.hours,
+                             minutes=self.minutes+self.minutes)
+        return NotImplemented
+
+    __radd__ = __add__
+
+    def __sub__(self, other):
+        if isinstance(other, TimeDelta):
+            return TimeDelta(weeks=self.weeks - other.weeks,
+                             days=self.days - other.days,
+                             hours=self.hours - other.hours,
+                             minutes=self.minutes - self.minutes)
+        return NotImplemented
+
+    def __rsub__(self, other):
+        if isinstance(other, TimeDelta):
+            return - self + other
+        return NotImplemented
+
+
+class DateTime:
+    def __init__(self, year=5777, month=1, day=1, hour=0, minute=0):
+        self.year = year
+        self.month = month
+        self.day = day
+        self.hour = hour
+        self.minute = minute
+
+    # implement __add__, __sub__ with timedelta
+
+
+
+
+
+
+
+td = TimeDelta(weeks=3, days=56)
+td2 = TimeDelta(days=5, hours=2)
+print(td)
+print(td2)
+print(td+td2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class Month:
     def __init__(self, first_day=1, day_num=30, name=None):
@@ -20,23 +116,28 @@ class Month:
 class Year:
     def __init__(self, year):
         self.meuberet = is_meuberet(year)
-        self.days = day_count(year)
+        self.day_num = day_count(year)
         self.molad = get_molad(year)
         self.pesach = get_pesach(year)
+        self.day_counts = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29]
+        self.months = ['Tishrei', 'Cheshvan', 'Kislev', 'Tevet',
+                       'Shevat', 'Adar', 'Nissan', 'Iyar', 'Sivan', 'Tammuz', 'Av', 'Elul']
+        if self.meuberet:
+            self.day_counts.insert(5, 30)
+            self.months[5] = 'Adar B'
+            self.months.insert(5, 'Adar A')
+
+        if self.day_num == 353 or self.day_num == 383:
+            self.day_counts[2] -= 1
+        if self.day_num == 355 or self.day_num == 385:
+            self.day_counts[1] += 1
 
     def print_calendar(self):
-        if not self.meuberet:
-            month_names = ['t','h','c','t','s','a','n','i','s','t','a','e']
-            month_days = [30,29,30,29,30,29,30,29,30,29,30,29]
-            if self.days==353:
-                month_days[2] = 29
-            if self.days==355:
-                month_days[1] = 30
-            first = self.molad
-            for i in range(12):
-                m = Month(first,month_days[i],month_names[i])
-                m.print_month()
-                first = (first+m.day_num)%7
+        first = self.molad
+        for i in range(12):
+            m = Month(first,self.day_counts[i],self.months[i])
+            m.print_month()
+            first = (first+m.day_num)%7
 
 
 
@@ -109,10 +210,13 @@ def day_count(year):
             return 355
 
 def get_pesach(year):
-    return (get_molad(year+1)-2)%7
+    return (get_molad(year + 1) - 2) % 7
 
 def print_year_info(year):
     print(get_molad(year))
     print(is_meuberet(year))
     print(day_count(year))
     print(get_pesach(year))
+
+# y = Year(5779)
+# y.print_calendar()
