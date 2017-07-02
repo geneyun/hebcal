@@ -1,6 +1,84 @@
 import math as _math
 
 
+def _get_molad(year):
+    # gets a year, returns the day on which aleph tishrey is on
+
+    a = (7 * (year - 1) + 1) % 19.0
+    n = (235 * (year - 1) - a + 1) / 19
+
+    s = 1.5305941358
+    b = 2.2162037
+
+    molad = (s * n + b) % 7
+
+    # lo adu rosh
+    if 1 < molad < 2:
+        molad = 2
+    elif 4 < molad < 5:
+        molad = 5
+    elif 6 < molad < 7:
+        molad = 0
+
+    # molad zaken
+    elif 2.75 < molad < 3:
+        molad = 3
+    elif molad > 3.75 and molad < 4:
+        molad = 5
+    elif molad > 5.75 and molad < 6:
+        molad = 7
+    elif molad > 0.75 and molad < 1:
+        molad = 2
+
+    # gatrad
+    elif not _is_meuberet(year) and 3.38287 < molad < 3.75:
+        molad = 5
+
+    # btu-takpat
+    elif not _is_meuberet(year) and _is_meuberet(year - 1) and 2.64772 < molad < 2.75:
+        molad = 3
+
+    else:
+        molad = int(molad)
+
+    return molad
+
+
+def _is_meuberet(year):
+    a = year % 19
+    m = [0, 3, 6, 8, 11, 14, 17]
+    return a in m
+
+
+def _day_count(year):
+    current_molad = _get_molad(year)
+    next_molad = _get_molad(year + 1)
+
+    if _is_meuberet(year):
+        if (current_molad + 383) % 7 == next_molad:
+            return 383
+        if (current_molad + 384) % 7 == next_molad:
+            return 384
+        if (current_molad + 385) % 7 == next_molad:
+            return 385
+    else:
+        if (current_molad + 353) % 7 == next_molad:
+            return 353
+        if (current_molad + 354) % 7 == next_molad:
+            return 354
+        if (current_molad + 355) % 7 == next_molad:
+            return 355
+
+def _get_pesach(year):
+    return (_get_molad(year + 1) - 2) % 7
+
+def _print_year_info(year):
+    print(_get_molad(year))
+    print(_is_meuberet(year))
+    print(_day_count(year))
+    print(_get_pesach(year))
+
+
 class TimeDelta:
     def __init__(self, weeks=0, days=0, hours=0, minutes=0):
         if minutes > 60:
@@ -63,20 +141,35 @@ class DateTime:
         self.hour = hour
         self.minute = minute
 
+
+
+
     # implement __add__, __sub__ with timedelta
 
+    def day_of_week(self):
+        day_counts = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29]
+        day_num = _day_count(self.year)
+        if _is_meuberet(self.year):
+            day_counts.insert(5, 30)
+        if day_num == 353 or day_num == 383:
+            day_counts[2] -= 1
+        if day_num == 355 or day_num == 385:
+            day_counts[1] += 1
+
+        print(day_counts)
+        total = 0
+        print(total)
+        for i in range(self.month-1):
+            total += day_counts[i]
+            print(total)
+        total += self.day
+        print(total)
+        total += _get_molad(self.year)
+        return total % 7
 
 
-
-
-
-
-td = TimeDelta(weeks=3, days=56)
-td2 = TimeDelta(days=5, hours=2)
-print(td)
-print(td2)
-print(td+td2)
-
+d = DateTime(5779, 5, 13)
+print(d.day_of_week())
 
 
 
@@ -115,10 +208,10 @@ class Month:
 
 class Year:
     def __init__(self, year):
-        self.meuberet = is_meuberet(year)
-        self.day_num = day_count(year)
-        self.molad = get_molad(year)
-        self.pesach = get_pesach(year)
+        self.meuberet = _is_meuberet(year)
+        self.day_num = _day_count(year)
+        self.molad = _get_molad(year)
+        self.pesach = _get_pesach(year)
         self.day_counts = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29]
         self.months = ['Tishrei', 'Cheshvan', 'Kislev', 'Tevet',
                        'Shevat', 'Adar', 'Nissan', 'Iyar', 'Sivan', 'Tammuz', 'Av', 'Elul']
@@ -141,82 +234,7 @@ class Year:
 
 
 
-def get_molad(year):
-    # gets a year, returns the day on which aleph tishrey is on
 
-    a = (7 * (year - 1) + 1) % 19.0
-    n = (235 * (year - 1) - a + 1) / 19
-
-    s = 1.5305941358
-    b = 2.2162037
-
-    molad = (s * n + b) % 7
-
-    # lo adu rosh
-    if 1 < molad < 2:
-        molad = 2
-    elif 4 < molad < 5:
-        molad = 5
-    elif 6 < molad < 7:
-        molad = 0
-
-    # molad zaken
-    elif 2.75 < molad < 3:
-        molad = 3
-    elif molad > 3.75 and molad < 4:
-        molad = 5
-    elif molad > 5.75 and molad < 6:
-        molad = 7
-    elif molad > 0.75 and molad < 1:
-        molad = 2
-
-    # gatrad
-    elif not is_meuberet(year) and 3.38287 < molad < 3.75:
-        molad = 5
-
-    # btu-takpat
-    elif not is_meuberet(year) and is_meuberet(year - 1) and 2.64772 < molad < 2.75:
-        molad = 3
-
-    else:
-        molad = int(molad)
-
-    return molad
-
-
-def is_meuberet(year):
-    a = year % 19
-    m = [0, 3, 6, 8, 11, 14, 17]
-    return a in m
-
-
-def day_count(year):
-    current_molad = get_molad(year)
-    next_molad = get_molad(year + 1)
-
-    if is_meuberet(year):
-        if (current_molad + 383) % 7 == next_molad:
-            return 383
-        if (current_molad + 384) % 7 == next_molad:
-            return 384
-        if (current_molad + 385) % 7 == next_molad:
-            return 385
-    else:
-        if (current_molad + 353) % 7 == next_molad:
-            return 353
-        if (current_molad + 354) % 7 == next_molad:
-            return 354
-        if (current_molad + 355) % 7 == next_molad:
-            return 355
-
-def get_pesach(year):
-    return (get_molad(year + 1) - 2) % 7
-
-def print_year_info(year):
-    print(get_molad(year))
-    print(is_meuberet(year))
-    print(day_count(year))
-    print(get_pesach(year))
 
 # y = Year(5779)
 # y.print_calendar()
