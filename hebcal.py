@@ -1,5 +1,5 @@
 import math as _math
-
+import datetime as _datetime
 
 def _get_molad(year):
     # gets a year, returns the day on which aleph tishrey is on
@@ -156,20 +156,43 @@ class DateTime:
         if day_num == 355 or day_num == 385:
             day_counts[1] += 1
 
-        print(day_counts)
-        total = 0
-        print(total)
-        for i in range(self.month-1):
-            total += day_counts[i]
-            print(total)
+        total = sum(day_counts[:self.month-1])
         total += self.day
-        print(total)
+        total = total % 7
         total += _get_molad(self.year)
-        return total % 7
+        return (total-1) % 7
+
+    def gauss(self):
+        # returns the date of pesach on self.year .
+        # ladies and gentlemen, Carl Friedrich Gauss:
+        A = self.year
+        a = (12*A + 17) % 19
+        b = A % 4
+        res = 32 + (4343 / 98496) + (1 + (272953 / 492480)) * a + (b / 4) - ((313 / 98496) * A)
+        M = int(res)
+        m = res - M
+        c = (3*A + 5*b + M + 5) % 7
+        if c == 2 or c == 4 or c == 6:
+            p = M + 1
+        if c == 1 and a > 6 and m >= 1367/2160:
+            p = M+2
+        if c == 0 and a > 11 and m >= 23269/25920:
+            p = M+1
+        p = M
+        if p > 31:
+            julian = _datetime.date(A-3760, 4, p-31)
+        else:
+            julian = _datetime.date(A - 3760, 3, p)
+        d = _datetime.timedelta(days=(A-3760)//100 - 2 - (A-3760)//400)
+        gregorian = julian + d
+        return gregorian
 
 
-d = DateTime(5779, 5, 13)
-print(d.day_of_week())
+
+
+for i in range(10):
+    d = DateTime(5777+i, 10, 9)
+    print(d.gauss())
 
 
 
