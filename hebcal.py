@@ -169,22 +169,32 @@ class DateTime:
         a = (12*A + 17) % 19
         b = A % 4
         res = 32 + (4343 / 98496) + (1 + (272953 / 492480)) * a + (b / 4) - ((313 / 98496) * A)
+        april = 0
         M = int(res)
+        c1 = False
+        if M > 31:
+            c1 = True
+            M -= 31
+            april = 1
         m = res - M
         c = (3*A + 5*b + M + 5) % 7
+        c2 = False
         if c == 2 or c == 4 or c == 6:
+            c2 = True
             p = M + 1
         if c == 1 and a > 6 and m >= 1367/2160:
             p = M+2
         if c == 0 and a > 11 and m >= 23269/25920:
+            c2 = True
             p = M+1
         p = M
-        if p > 31:
-            julian = _datetime.date(A-3760, 4, p-31)
-        else:
-            julian = _datetime.date(A - 3760, 3, p)
+
+        julian = _datetime.date(A-3760, 3+ april, p)
+
         d = _datetime.timedelta(days=(A-3760)//100 - 2 - (A-3760)//400)
         gregorian = julian + d
+        if (c1 and not c2) or (not c1 and c2):
+            gregorian += _datetime.timedelta(days=1)
         return gregorian
 
 
