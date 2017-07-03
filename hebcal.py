@@ -69,8 +69,10 @@ def _day_count(year):
         if (current_molad + 355) % 7 == next_molad:
             return 355
 
+
 def _get_pesach(year):
     return (_get_molad(year + 1) - 2) % 7
+
 
 def _print_year_info(year):
     print(_get_molad(year))
@@ -197,7 +199,8 @@ class DateTime:
             gregorian += _datetime.timedelta(days=1)
         return gregorian
 
-
+    def to_gregorian(self):
+        pass
 
 
 for i in range(10):
