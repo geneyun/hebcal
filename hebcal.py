@@ -1,5 +1,68 @@
 import math as _math
 import datetime as _datetime
+import time
+data = {
+100 : 36501 ,
+200 : 73029 ,
+300 : 109560 ,
+400 : 146088 ,
+500 : 182619 ,
+600 : 219147 ,
+700 : 255647 ,
+800 : 292176 ,
+900 : 328706 ,
+1000 : 365235 ,
+1100 : 401765 ,
+1200 : 438294 ,
+1300 : 474822 ,
+1400 : 511322 ,
+1500 : 547853 ,
+1600 : 584381 ,
+1700 : 620910 ,
+1800 : 657440 ,
+1900 : 693969 ,
+2000 : 730469 ,
+2100 : 766998 ,
+2200 : 803528 ,
+2300 : 840057 ,
+2400 : 876587 ,
+2500 : 913116 ,
+2600 : 949616 ,
+2700 : 986146 ,
+2800 : 1022675 ,
+2900 : 1059203 ,
+3000 : 1095734 ,
+3100 : 1132262 ,
+3200 : 1168793 ,
+3300 : 1205291 ,
+3400 : 1241821 ,
+3500 : 1278350 ,
+3600 : 1314880 ,
+3700 : 1351409 ,
+3800 : 1387939 ,
+3900 : 1424438 ,
+4000 : 1460968 ,
+4100 : 1497496 ,
+4200 : 1534027 ,
+4300 : 1570555 ,
+4400 : 1607084 ,
+4500 : 1643584 ,
+4600 : 1680115 ,
+4700 : 1716643 ,
+4800 : 1753174 ,
+4900 : 1789702 ,
+5000 : 1826231 ,
+5100 : 1862761 ,
+5200 : 1899261 ,
+5300 : 1935790 ,
+5400 : 1972320 ,
+5500 : 2008849 ,
+5600 : 2045379 ,
+5700 : 2081908 ,
+5800 : 2118408 ,
+5900 : 2154936 ,
+6000 : 2191465}
+
 
 def _get_molad(year):
     # gets a year, returns the day on which aleph tishrey is on
@@ -26,7 +89,7 @@ def _get_molad(year):
     elif molad > 3.75 and molad < 4:
         molad = 5
     elif molad > 5.75 and molad < 6:
-        molad = 7
+        molad = 0
     elif molad > 0.75 and molad < 1:
         molad = 2
 
@@ -79,6 +142,82 @@ def _print_year_info(year):
     print(_is_meuberet(year))
     print(_day_count(year))
     print(_get_pesach(year))
+
+
+def _date_to_days(year, month, day):
+    total = 0
+    for i in range(1, year):
+        total += _day_count(i)
+
+    day_counts = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29]
+    day_num = _day_count(year)
+    if _is_meuberet(year):
+        day_counts.insert(5, 30)
+    if day_num == 353 or day_num == 383:
+        day_counts[2] -= 1
+    if day_num == 355 or day_num == 385:
+        day_counts[1] += 1
+
+    total += sum(day_counts[:month-1])
+    total += day
+
+    return total
+
+
+def _days_to_date(num):
+    year = 1
+    # print(num)
+    while _day_count(year+1) <= num:
+        # print(num)
+        num -= _day_count(year+1)
+        year += 1
+    # print(num)
+    day_counts = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29]
+    day_num = _day_count(year)
+    if _is_meuberet(year):
+        day_counts.insert(5, 30)
+    if day_num == 353 or day_num == 383:
+        day_counts[2] -= 1
+    if day_num == 355 or day_num == 385:
+        day_counts[1] += 1
+
+    month = 1
+    # print('num', num)
+    # print(day_counts)
+    for i in day_counts:
+        # print('i',i)
+        if i <= num:
+            num -= i
+            month += 1
+        else:
+            break
+    # print(num)
+    return (year,month,num-2)
+
+def _days_to_date2(num):
+    _datetime.timedelta(days=num)
+    c = _date_to_days(3761, 4, 18)
+
+# print(_days_to_date(_date_to_days(2,5,26)), (2,5,26))
+# print(_days_to_date(_date_to_days(1000,2,26)), (1000,2,26))
+# print(_days_to_date(_date_to_days(2000,6,26)), (2000,6,26))
+# print(_days_to_date(_date_to_days(5777,5,26)), (5777,5,26))
+
+# print('h')
+print(_days_to_date(_date_to_days(777, 5, 26)))
+# d = _date_to_days(5778, 5, 26)
+# f = _date_to_days(5778, 1, 1)
+
+
+# print(d-f)
+
+
+def _heb_to_greg(year, month, day):
+    d1 = _date_to_days(year, month, day)
+    c = _date_to_days(3761, 4, 18)
+    td = _datetime.timedelta(days=d1-c)
+    return _datetime.date(year=1, day=1,month=1)+td
+
 
 
 class TimeDelta:
@@ -136,14 +275,21 @@ class TimeDelta:
 
 
 class DateTime:
-    def __init__(self, year=5777, month=1, day=1, hour=0, minute=0):
+    def __init__(self, year=5777, month=1, day=1):
         self.year = year
         self.month = month
         self.day = day
-        self.hour = hour
-        self.minute = minute
+
+    def __add__(self, other):
+        if isinstance(other, TimeDelta):
 
 
+
+            return DateTime(weeks=self.weeks + other.weeks,
+                             days=self.days + other.days,
+                             hours=self.hours + other.hours,
+                             minutes=self.minutes+self.minutes)
+        return NotImplemented
 
 
     # implement __add__, __sub__ with timedelta
@@ -203,74 +349,87 @@ class DateTime:
         pass
 
 
-for i in range(10):
-    d = DateTime(5777+i, 10, 9)
-    print(d.gauss())
+# for i in range(10):
+#     d = DateTime(5777+i, 10, 9)
+#     print(d.gauss())
+
+
+# d1 = _date_to_days(5777,6,3)
+# c = _date_to_days(3761,4,18)
+# d = d1-c
+# td = _datetime.timedelta(days=d)
+# first = _datetime.date(year=1,day=1,month=1)
+# print(first+td)
+
+# for i in range(300):
+#     print(_days_to_date(_date_to_days(4777+i,5,26)), (4777+i,5,26))
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-class Month:
-    def __init__(self, first_day=1, day_num=30, name=None):
-        self.first_day = first_day
-        self.day_num = day_num
-        self.name = name
-
-    def print_month(self):
-        print('         Month:   {}'.format(self.name))
-        print('Sunday{}Monday{}Tuesday{}Wednesday{}Thursday{}Friday{}Saturday'.format(' '*4,' '*4,' '*3,' '*1,' '*2,' '*4,' '*2))
-        for i in range((self.first_day-1)%7):
-            print('          ',end='')
-        for day in range(self.day_num):
-            print(day+1,end=' '*(10-len(str(day+1))))
-            if (day+self.first_day)%7==0:
-                print()
-        print('\n'*4)
-
-class Year:
-    def __init__(self, year):
-        self.meuberet = _is_meuberet(year)
-        self.day_num = _day_count(year)
-        self.molad = _get_molad(year)
-        self.pesach = _get_pesach(year)
-        self.day_counts = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29]
-        self.months = ['Tishrei', 'Cheshvan', 'Kislev', 'Tevet',
-                       'Shevat', 'Adar', 'Nissan', 'Iyar', 'Sivan', 'Tammuz', 'Av', 'Elul']
-        if self.meuberet:
-            self.day_counts.insert(5, 30)
-            self.months[5] = 'Adar B'
-            self.months.insert(5, 'Adar A')
-
-        if self.day_num == 353 or self.day_num == 383:
-            self.day_counts[2] -= 1
-        if self.day_num == 355 or self.day_num == 385:
-            self.day_counts[1] += 1
-
-    def print_calendar(self):
-        first = self.molad
-        for i in range(12):
-            m = Month(first,self.day_counts[i],self.months[i])
-            m.print_month()
-            first = (first+m.day_num)%7
-
-
-
-
-
-# y = Year(5779)
-# y.print_calendar()
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+# class Month:
+#     def __init__(self, first_day=1, day_num=30, name=None):
+#         self.first_day = first_day
+#         self.day_num = day_num
+#         self.name = name
+#
+#     def print_month(self):
+#         print('         Month:   {}'.format(self.name))
+#         print('Sunday{}Monday{}Tuesday{}Wednesday{}Thursday{}Friday{}Saturday'.format(' '*4,' '*4,' '*3,' '*1,' '*2,' '*4,' '*2))
+#         for i in range((self.first_day-1)%7):
+#             print('          ',end='')
+#         for day in range(self.day_num):
+#             print(day+1,end=' '*(10-len(str(day+1))))
+#             if (day+self.first_day)%7==0:
+#                 print()
+#         print('\n'*4)
+#
+# class Year:
+#     def __init__(self, year):
+#         self.meuberet = _is_meuberet(year)
+#         self.day_num = _day_count(year)
+#         self.molad = _get_molad(year)
+#         self.pesach = _get_pesach(year)
+#         self.day_counts = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29]
+#         self.months = ['Tishrei', 'Cheshvan', 'Kislev', 'Tevet',
+#                        'Shevat', 'Adar', 'Nissan', 'Iyar', 'Sivan', 'Tammuz', 'Av', 'Elul']
+#         if self.meuberet:
+#             self.day_counts.insert(5, 30)
+#             self.months[5] = 'Adar B'
+#             self.months.insert(5, 'Adar A')
+#
+#         if self.day_num == 353 or self.day_num == 383:
+#             self.day_counts[2] -= 1
+#         if self.day_num == 355 or self.day_num == 385:
+#             self.day_counts[1] += 1
+#
+#     def print_calendar(self):
+#         first = self.molad
+#         for i in range(12):
+#             m = Month(first,self.day_counts[i],self.months[i])
+#             m.print_month()
+#             first = (first+m.day_num)%7
+#
+#
+#
+#
+#
+# # y = Year(5779)
+# # y.print_calendar()
